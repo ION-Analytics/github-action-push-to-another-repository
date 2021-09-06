@@ -11,7 +11,8 @@ USER_EMAIL="$4"
 USER_NAME="$5"
 DESTINATION_REPOSITORY_USERNAME="$6"
 TARGET_BRANCH="$7"
-COMMIT_MESSAGE="$8"
+TARGET_PATH="$8"
+COMMIT_MESSAGE="$9"
 
 if [ -z "$DESTINATION_REPOSITORY_USERNAME" ]
 then
@@ -30,13 +31,13 @@ echo "Cloning destination git repository"
 git config --global user.email "$USER_EMAIL"
 git config --global user.name "$USER_NAME"
 git clone --single-branch --branch "$TARGET_BRANCH" "https://$USER_NAME:$API_TOKEN_GITHUB@github.com/$DESTINATION_REPOSITORY_USERNAME/$DESTINATION_REPOSITORY_NAME.git" "$CLONE_DIR"
-ls -la "$CLONE_DIR"
+ls -lA "$CLONE_DIR"
 
-TARGET_DIR=$(mktemp -d)
+DOT_GIT_DIR=$(mktemp -d)
 # This mv has been the easier way to be able to remove files that were there
 # but not anymore. Otherwise we had to remove the files from "$CLONE_DIR",
 # including "." and with the exception of ".git/"
-mv "$CLONE_DIR/.git" "$TARGET_DIR"
+mv "$CLONE_DIR/.git" "$DOT_GIT_DIR"
 
 if [ ! -d "$SOURCE_DIRECTORY" ]
 then
@@ -52,12 +53,20 @@ then
 	exit 1
 fi
 
+echo "Remove target path"
+rm -rf "$CLONE_DIR/$TARGET_PATH"
+
+# Recreate the directory if TARGET_PATH was empty
+mkdir -p "$CLONE_DIR"
+
 echo "Copy contents to target git repository"
-cp -ra "$SOURCE_DIRECTORY"/. "$TARGET_DIR"
+cp -ra "$SOURCE_DIRECTORY"/. "$CLONE_DIR/$TARGET_PATH"
 cd "$TARGET_DIR"
 
+mv "$CLONE_DIR/.git" "$DOT_GIT_DIR"
+
 echo "Files that will be pushed:"
-ls -la
+ls -lA
 
 ORIGIN_COMMIT="https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA"
 COMMIT_MESSAGE="${COMMIT_MESSAGE/ORIGIN_COMMIT/$ORIGIN_COMMIT}"

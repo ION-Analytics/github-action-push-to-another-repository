@@ -25,6 +25,10 @@ inputs:
     description: '[Optional] set target branch name for the destination repository. Defaults to "master" for historical reasons'
     default: 'master'
     required: false
+  target-path:
+    description: '[Optional] set target path for the destination repository. Any contents of the target path will be removed. Defaults to "."'
+    default: '.'
+    required: false
   commit-message:
     description: '[Optional] commit message for the output repository. ORIGIN_COMMIT is replaced by the URL@commit in the origin repo'
     default: 'Update from ORIGIN_COMMIT'
@@ -40,6 +44,7 @@ runs:
     - ${{ inputs.user-name }}
     - ${{ inputs.destination-repository-username }}
     - ${{ inputs.target-branch }}
+    - ${{ inputs.target-path }}
     - ${{ inputs.commit-message }}
 branding:
   icon: 'git-commit'
